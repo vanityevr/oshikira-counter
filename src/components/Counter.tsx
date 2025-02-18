@@ -66,6 +66,24 @@ export const Counter = () => {
     }
   }, [zrobione]);
 
+  useEffect(() => {
+  const interval = setInterval(async () => {
+    try {
+      const res = await fetch("/api/getCounter");
+      const data = await res.json();
+      setSiodla(data.counter || 0);
+      const resDone = await fetch("/api/getDone");
+      const dataDone = await resDone.json();
+      setZrobione(dataDone.done || 0);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast({title:'Błąd!', description:'Błąd podczas odpytywania serwera!', variant:'destructive'})
+    }
+  }, 15000);
+
+  return () => clearInterval(interval);
+}, []);
+
   const unlockFunctions = async (key: string) => {
     const res = await fetch("/api/setAccess", {
       method: "POST",
@@ -160,7 +178,7 @@ export const Counter = () => {
   };
 
   return (
-    <CardContent className="relative bg-rose-700 rounded-[5%] px-8 py-4 flex flex-col gap-4 items-center overflow-hidden">
+    <CardContent className="relative bg-rose-700 rounded-[25px] px-8 py-4 flex flex-col gap-4 items-center overflow-hidden">
       <h1 className="text-4xl font-bold text-center text-white sm:text-left">
         OshiKira&apos;s Siodło Counter
       </h1>
@@ -290,7 +308,7 @@ export const Counter = () => {
         {/* Addition Card */}
         <Card>
           <CardContent className="flex flex-col gap-2 items-center">
-            <h1 className="mt-2 font-bold">A DONATE BYŁ?</h1>
+            <h1 className="mt-2 font-bold">ILE SIODEŁ DOSZŁO?</h1>
             <div className="flex flex-wrap gap-2 justify-evenly">
               <Button
                 className="bg-blue-900 hover:bg-blue-800"
