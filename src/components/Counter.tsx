@@ -66,23 +66,52 @@ export const Counter = () => {
     }
   }, [zrobione]);
 
-  useEffect(() => {
+useEffect(() => {
+  const controller = new AbortController();
+
   const interval = setInterval(async () => {
     try {
-      const res = await fetch("/api/getCounter");
+      const res = await fetch("/api/getCounter", {
+        signal: controller.signal,
+      });
       const data = await res.json();
-      setSiodla(data.counter || 0);
-      const resDone = await fetch("/api/getDone");
+      if (
+        data.counter !== null &&
+        data.counter !== undefined &&
+        data.counter !== siodla
+      ) {
+        setSiodla(data.counter || 0);
+      }
+
+      const resDone = await fetch("/api/getDone", {
+        signal: controller.signal,
+      });
       const dataDone = await resDone.json();
-      setZrobione(dataDone.done || 0);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast({title:'Błąd!', description:'Błąd podczas odpytywania serwera!', variant:'destructive'})
+      if (
+        dataDone !== null &&
+        dataDone.done !== undefined &&
+        dataDone.done !== zrobione
+      ) {
+        setZrobione(dataDone.done || 0);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name !== "AbortError") {
+        toast({
+          title: "Błąd!",
+          description: "Błąd podczas odpytywania serwera!",
+          variant: "destructive",
+        });
+      }
     }
   }, 15000);
 
-  return () => clearInterval(interval);
-}, []);
+  return () => {
+    controller.abort();
+    clearInterval(interval);
+  };
+}, [zrobione, siodla]);
+
+
 
   const unlockFunctions = async (key: string) => {
     const res = await fetch("/api/setAccess", {
